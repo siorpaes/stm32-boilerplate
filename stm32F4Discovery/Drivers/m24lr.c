@@ -13,9 +13,6 @@
 #include "m24lr.h"
 
 #define CODEC_ADDRESS (0xA0)
-//#define CODEC_ADDRESS (0x00)
-//#define CODEC_ADDRESS (0xAE)
-
 #define CODEC_I2C I2C1
 
 
