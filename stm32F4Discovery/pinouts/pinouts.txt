@@ -1,8 +1,8 @@
 LIS3DH demo
-SPI2_CLK    PB13
-SPI2_MISO   PB14
-SPI2_MOSI   PB15
-CS          PB11
+CS          PB11  Saleae Channel 0, Black
+SPI2_CLK    PB13  Saleae Channel 1, Brown
+SPI2_MISO   PB14  Saleae Channel 2, Red
+SPI2_MOSI   PB15  Saleae Channel 3, Orange
 
 SPBT2632 demo
 Reset       PA8   Saleae Channel 2, Red
