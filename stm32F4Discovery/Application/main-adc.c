@@ -24,7 +24,7 @@ static __task void main_task(void)
 		printf("Val %i\n", adcval);
     
     /* Insert delay */
-		os_dly_wait(10);
+		os_dly_wait(1);
     
     /* Toggle some leds */
 		ledToggle(ORANGE);
