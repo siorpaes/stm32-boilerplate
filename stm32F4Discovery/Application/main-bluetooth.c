@@ -11,8 +11,8 @@ int sensor;
 
 static __task void main_task(void)
 {
-	char buffer[32];
-	int counter;
+	char buffer[34];
+	int counter, i;
 	
 	ledsInit();
 	bluetoothConfig();
@@ -24,12 +24,20 @@ static __task void main_task(void)
 		if(getBtStatus() == BT_CONNECTED){
 			ledOn(BLUE);
 			
-			sensor = sinwave[counter++];
+			sensor = (sinwave[counter++]-1024) >> 6;
 			memset(buffer, 0, sizeof(buffer));
-			sprintf(buffer, "Hello %i\n\r", sensor);
+			for(i=0; i<32; i++){
+				if(sensor == i)
+					buffer[i] = '*';
+				else
+					buffer[i] = ' ';
+			}
+			buffer[32] = '\n';
+			buffer[33] = '\r';
+
 			counter %= 64;
 			
-			bluetoothSendData((uint8_t*)buffer, strlen(buffer));
+			bluetoothSendData((uint8_t*)buffer, 34);
     }
 		else{
 			ledOff(BLUE);
