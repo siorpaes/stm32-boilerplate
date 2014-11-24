@@ -20,7 +20,7 @@ static __task void main_task(void)
 	
   while (1){
 		ledToggle(GREEN);
-		
+
 		if(getBtStatus() == BT_CONNECTED){
 			ledOn(BLUE);
 			
@@ -38,14 +38,14 @@ static __task void main_task(void)
 			counter %= 64;
 			
 			bluetoothSendData((uint8_t*)buffer, 34);
-    }
+		}
 		else{
 			ledOff(BLUE);
 		}
     
 		/* Insert delay */
 		os_dly_wait(5);
-  }
+	}
 }
 
 
