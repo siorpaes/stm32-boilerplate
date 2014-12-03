@@ -164,7 +164,6 @@ void uartConfig(void)
 	USART_InitTypeDef USART_InitStructure;
 	GPIO_InitTypeDef GPIO_struct;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	DMA_InitTypeDef DMA_InitStructure;
 	
 	/* Enable GPIO clock */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
@@ -172,10 +171,6 @@ void uartConfig(void)
 	/* Enable USART clock */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 	
-	/* UART pin mappings */
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);
-  
 	/* Configure USART Tx and Rx pins */
 	GPIO_struct.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_struct.GPIO_Speed = GPIO_Speed_2MHz;
@@ -184,6 +179,10 @@ void uartConfig(void)
 	GPIO_struct.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;
 	GPIO_Init(GPIOA, &GPIO_struct);
 
+	/* UART pin mappings */
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_USART2);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_USART2);
+  
 	/* Initialize UART2 at 115200, 8N1 */
 	USART_DeInit(USART2);
 	USART_InitStructure.USART_BaudRate = 115200;
@@ -194,33 +193,10 @@ void uartConfig(void)
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_Init(USART2, &USART_InitStructure);
   	
-	/* Configure UART2 TX DMA */
+	/* Enable UART2 TX DMA and relevant interrupt */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
-
-	/* Configure DMA1_Stream6 Channel4 */
-	DMA_StructInit(&DMA_InitStructure);
-  DMA_DeInit(DMA1_Stream6);
-  DMA_InitStructure.DMA_Channel = DMA_Channel_4;
-  DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(USART2->DR);
-  DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)0;
-  DMA_InitStructure.DMA_DIR = DMA_DIR_MemoryToPeripheral;
-  DMA_InitStructure.DMA_BufferSize = 1;
-  DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-  DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-  DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-  DMA_InitStructure.DMA_MemoryDataSize = DMA_PeripheralDataSize_Byte;
-  DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-  DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-  DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Enable;
-  DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
-  DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-  DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-  DMA_Init(DMA1_Stream6, &DMA_InitStructure);
-
-	/* Enable DMA Transfer Complete interrupt */
-	DMA_ITConfig(DMA1_Stream6, DMA_IT_TC, ENABLE);
+	USART_DMACmd(USART2, USART_DMAReq_Tx, ENABLE);
 	
-	//NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream6_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
@@ -230,7 +206,6 @@ void uartConfig(void)
 	/* Configure UART2 RX interrupt */
 	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-	/* Following two parameters to be checked */
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_Init(&NVIC_InitStructure);
@@ -277,8 +252,8 @@ void uartReconf(int baudRate)
 
 
 /** @brief Sends data over UART3 using polling
- * @param pOutBuffer: Data buffer to be sent
- * @param ByteToWrite: Length of buffer to be sent
+ * @param buffer: Data buffer to be sent
+ * @param length: Length of buffer to be sent
  * @retval None
  */
 void uartWrite(uint8_t* buffer, int length)
@@ -299,12 +274,10 @@ void uartWrite(uint8_t* buffer, int length)
 void uartDmaWrite(uint8_t* buffer, int length)
 {
 	DMA_InitTypeDef DMA_InitStructure;
-
-	USART_DMACmd(USART2, USART_DMAReq_Tx, DISABLE);
 	
 	/* Configure USART2 TX DMA Stream and Channel. Cfr page 164 of spec */
-	DMA_StructInit(&DMA_InitStructure);
 	DMA_DeInit(DMA1_Stream6);
+	DMA_StructInit(&DMA_InitStructure);
 	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&(USART2->DR);
 	DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)buffer;
@@ -321,9 +294,10 @@ void uartDmaWrite(uint8_t* buffer, int length)
 	DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
 	DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
 	DMA_Init(DMA1_Stream6, &DMA_InitStructure);
-	USART_DMACmd(USART2, USART_DMAReq_Tx, ENABLE);
+	
 	DMA_Cmd(DMA1_Stream6, ENABLE);
 	
+	/* Enable DMA Transfer Complete interrupt */
 	DMA_ITConfig(DMA1_Stream6, DMA_IT_TC, ENABLE);
 
 	/* Wait for transfer completion */
