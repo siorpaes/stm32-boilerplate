@@ -116,11 +116,6 @@ int spiConfig(void)
 	/* Enable GPIO clock */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);	
 	
-	/* SPI2 pin mappings */
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_SPI2);
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_SPI2);
-	
 	/* Configure SPI2 signals: SCK, MISO, MOSI */
 	GPIO_StructInit(&GPIO_struct);
 	GPIO_struct.GPIO_Mode = GPIO_Mode_AF;
@@ -129,6 +124,11 @@ int spiConfig(void)
 	GPIO_struct.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_struct.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
 	GPIO_Init(GPIOB, &GPIO_struct);
+
+	/* SPI2 pin mappings */
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_SPI2);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_SPI2);
 	
 	/* Configure SPI2 CS signal */
 	GPIO_StructInit(&GPIO_struct);
@@ -138,7 +138,7 @@ int spiConfig(void)
 	GPIO_struct.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_struct.GPIO_Pin = GPIO_Pin_11;
 	GPIO_Init(GPIOB, &GPIO_struct);
-	
+
 	/* Enable SPI2 clock */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
 	

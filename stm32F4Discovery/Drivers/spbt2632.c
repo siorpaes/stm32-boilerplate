@@ -301,6 +301,8 @@ void uartDmaWrite(uint8_t* buffer, int length)
 	DMA_InitTypeDef DMA_InitStructure;
 
 	USART_DMACmd(USART2, USART_DMAReq_Tx, DISABLE);
+	
+	/* Configure USART2 TX DMA Stream and Channel. Cfr page 164 of spec */
 	DMA_StructInit(&DMA_InitStructure);
 	DMA_DeInit(DMA1_Stream6);
 	DMA_InitStructure.DMA_Channel = DMA_Channel_4;
@@ -361,6 +363,7 @@ void USART2_IRQHandler(void)
 			else{
 				replyPos = strstr((char*)uart_rx_buffer, "AT-AB BDAddress");
 				if(replyPos != NULL){
+					/* Module has reset */
 					bluetoothState = BT_DISCONNECTED;
 					printf("Bluetooth module reset\n");
 					/* Store module's BDADDR */
