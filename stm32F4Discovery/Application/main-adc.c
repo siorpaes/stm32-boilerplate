@@ -10,6 +10,23 @@ void Delay(__IO uint32_t nCount);
 
 unsigned int adcval;
 
+static void drawBar(int val)
+{
+	char buffer[60];
+	int i;
+	
+	val -= 240;
+	
+	for(i=0; i<60; i++){
+		if(val*60/100 > i)
+			buffer[i] = ']';
+		else
+			buffer[i] = 0;
+	}
+	
+	printf("[%03i]%s\n", val, buffer);
+}
+
 static __task void main_task(void)
 {
 	ledsInit();
@@ -21,7 +38,9 @@ static __task void main_task(void)
   {
 		/* Run acquisition */
 		adcval = ADC_SingleAcquisition();
-		printf("Val %i\n", adcval);
+
+		/* Show data */
+		drawBar(adcval);
     
     /* Insert delay */
 		os_dly_wait(1);
